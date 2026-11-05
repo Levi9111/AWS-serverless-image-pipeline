@@ -1,0 +1,15 @@
+# LocalStack state
+localstack_data/
+
+# Python
+__pycache__/
+*.pyc
+package/
+function.zip
+
+# Env files
+.env
+*.pem
+
+# Docker
+.dockerignore
