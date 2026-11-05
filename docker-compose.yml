@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   localstack:
     image: localstack/localstack:3.0
@@ -11,7 +9,7 @@ services:
       - PERSISTENCE=1
       - LAMBDA_DOCKER_NETWORK=host
     volumes:
-      - "./localstack_data:/var/lib/localstack"
+      - "./localstack_data:/var/lib/localstack:z"
       - "/var/run/docker.sock:/var/run/docker.sock"
 
   dashboard:
