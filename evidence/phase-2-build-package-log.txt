@@ -1,0 +1,145 @@
+ ~/De/serverless-image-pipeline/lambda  main  # 1. Verify pip created package/ and it's owned by you
+ls -ld package
+ls package | head -5
+
+# 2. Copy the handler in
+cp app.py package/
+
+# 3. Zip
+cd package
+zip -r ../function.zip . > /dev/null
+cd ..
+
+# 4. Confirm
+ls -lh function.zip
+unzip -l function.zip | head -20
+unzip -l function.zip | grep cpython-39
+drwxr-xr-x. 1 levi9111 docker 74 Nov  6 16:01 package
+PIL
+pillow-10.4.0.dist-info
+pillow.libs
+-rw-r--r--. 1 levi9111 docker 4.7M Nov  6 16:04 function.zip
+Archive:  function.zip
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+        0  11-06-2026 16:01   pillow.libs/
+   144001  11-06-2026 16:01   pillow.libs/libbrotlicommon-c43ca8d5.so.1.1.0
+   510929  11-06-2026 16:01   pillow.libs/liblcms2-8d000061.so.2.0.16
+   803505  11-06-2026 16:01   pillow.libs/libjpeg-177d514f.so.62.4.0
+    63161  11-06-2026 16:01   pillow.libs/libbrotlidec-6c4e80e7.so.1.1.0
+    17049  11-06-2026 16:01   pillow.libs/libXau-00ec42fe.so.6.0.0
+    38009  11-06-2026 16:01   pillow.libs/libsharpyuv-aaa00b5c.so.0.1.0
+   569473  11-06-2026 16:01   pillow.libs/libopenjp2-d64ae697.so.2.5.2
+   281913  11-06-2026 16:01   pillow.libs/libpng16-8b7e0db9.so.16.43.0
+    29457  11-06-2026 16:01   pillow.libs/libwebpdemux-c2ca7ca8.so.2.0.15
+   632889  11-06-2026 16:01   pillow.libs/libwebp-d4849e8c.so.7.1.9
+   713409  11-06-2026 16:01   pillow.libs/libtiff-f683b479.so.6.0.2
+    54529  11-06-2026 16:01   pillow.libs/libwebpmux-15b3cc0d.so.3.1.0
+  3393593  11-06-2026 16:01   pillow.libs/libharfbuzz-db277735.so.0.60850.0
+  1426729  11-06-2026 16:01   pillow.libs/libfreetype-e3eca772.so.6.20.1
+   270265  11-06-2026 16:01   pillow.libs/liblzma-d1e41b3a.so.5.4.5
+   247337  11-06-2026 16:01   pillow.libs/libxcb-46a603a8.so.1.1.0
+   294169  11-06-2026 16:01   PIL/_imagingft.cpython-39-x86_64-linux-gnu.so
+   144760  11-06-2026 16:01   PIL/_imagingmath.cpython-39-x86_64-linux-gnu.so
+   141305  11-06-2026 16:01   PIL/_imagingcms.cpython-39-x86_64-linux-gnu.so
+    37768  11-06-2026 16:01   PIL/_imagingmorph.cpython-39-x86_64-linux-gnu.so
+  3176777  11-06-2026 16:01   PIL/_imaging.cpython-39-x86_64-linux-gnu.so
+    46280  11-06-2026 16:01   PIL/_imagingtk.cpython-39-x86_64-linux-gnu.so
+   100857  11-06-2026 16:01   PIL/_webp.cpython-39-x86_64-linux-gnu.so
+     2708  11-06-2026 16:01   PIL/__pycache__/BdfFontFile.cpython-39.pyc
+    13271  11-06-2026 16:01   PIL/__pycache__/BlpImagePlugin.cpython-39.pyc
+     9268  11-06-2026 16:01   PIL/__pycache__/BmpImagePlugin.cpython-39.pyc
+     1914  11-06-2026 16:01   PIL/__pycache__/BufrStubImagePlugin.cpython-39.pyc
+     3121  11-06-2026 16:01   PIL/__pycache__/ContainerIO.cpython-39.pyc
+     1427  11-06-2026 16:01   PIL/__pycache__/CurImagePlugin.cpython-39.pyc
+     1700  11-06-2026 16:01   PIL/__pycache__/DcxImagePlugin.cpython-39.pyc
+    13913  11-06-2026 16:01   PIL/__pycache__/DdsImagePlugin.cpython-39.pyc
+     9736  11-06-2026 16:01   PIL/__pycache__/EpsImagePlugin.cpython-39.pyc
+    10244  11-06-2026 16:01   PIL/__pycache__/ExifTags.cpython-39.pyc
+     3670  11-06-2026 16:01   PIL/__pycache__/FitsImagePlugin.cpython-39.pyc
+     3742  11-06-2026 16:01   PIL/__pycache__/FliImagePlugin.cpython-39.pyc
+     2823  11-06-2026 16:01   PIL/__pycache__/FontFile.cpython-39.pyc
+     4362  11-06-2026 16:01   PIL/__pycache__/FpxImagePlugin.cpython-39.pyc
+     3798  11-06-2026 16:01   PIL/__pycache__/FtexImagePlugin.cpython-39.pyc
+     1991  11-06-2026 16:01   PIL/__pycache__/GbrImagePlugin.cpython-39.pyc
+     2685  11-06-2026 16:01   PIL/__pycache__/GdImageFile.cpython-39.pyc
+    22185  11-06-2026 16:01   PIL/__pycache__/GifImagePlugin.cpython-39.pyc
+     3652  11-06-2026 16:01   PIL/__pycache__/GimpGradientFile.cpython-39.pyc
+     1529  11-06-2026 16:01   PIL/__pycache__/GimpPaletteFile.cpython-39.pyc
+     1911  11-06-2026 16:01   PIL/__pycache__/GribStubImagePlugin.cpython-39.pyc
+     1902  11-06-2026 16:01   PIL/__pycache__/Hdf5StubImagePlugin.cpython-39.pyc
+     9695  11-06-2026 16:01   PIL/__pycache__/IcnsImagePlugin.cpython-39.pyc
+     7929  11-06-2026 16:01   PIL/__pycache__/IcoImagePlugin.cpython-39.pyc
+     6811  11-06-2026 16:01   PIL/__pycache__/ImImagePlugin.cpython-39.pyc
+   115770  11-06-2026 16:01   PIL/__pycache__/Image.cpython-39.pyc
+     7904  11-06-2026 16:01   PIL/__pycache__/ImageChops.cpython-39.pyc
+    35998  11-06-2026 16:01   PIL/__pycache__/ImageCms.cpython-39.pyc
+     7150  11-06-2026 16:01   PIL/__pycache__/ImageColor.cpython-39.pyc
+    26338  11-06-2026 16:01   PIL/__pycache__/ImageDraw.cpython-39.pyc
+     6535  11-06-2026 16:01   PIL/__pycache__/ImageDraw2.cpython-39.pyc
+     3720  11-06-2026 16:01   PIL/__pycache__/ImageEnhance.cpython-39.pyc
+    19201  11-06-2026 16:01   PIL/__pycache__/ImageFile.cpython-39.pyc
+    18374  11-06-2026 16:01   PIL/__pycache__/ImageFilter.cpython-39.pyc
+    57977  11-06-2026 16:01   PIL/__pycache__/ImageFont.cpython-39.pyc
+     3833  11-06-2026 16:01   PIL/__pycache__/ImageGrab.cpython-39.pyc
+    11391  11-06-2026 16:01   PIL/__pycache__/ImageMath.cpython-39.pyc
+     2163  11-06-2026 16:01   PIL/__pycache__/ImageMode.cpython-39.pyc
+     7849  11-06-2026 16:01   PIL/__pycache__/ImageMorph.cpython-39.pyc
+    19792  11-06-2026 16:01   PIL/__pycache__/ImageOps.cpython-39.pyc
+     8204  11-06-2026 16:01   PIL/__pycache__/ImagePalette.cpython-39.pyc
+      252  11-06-2026 16:01   PIL/__pycache__/ImagePath.cpython-39.pyc
+     5027  11-06-2026 16:01   PIL/__pycache__/ImageQt.cpython-39.pyc
+     2691  11-06-2026 16:01   PIL/__pycache__/ImageSequence.cpython-39.pyc
+    10154  11-06-2026 16:01   PIL/__pycache__/ImageShow.cpython-39.pyc
+     5730  11-06-2026 16:01   PIL/__pycache__/ImageStat.cpython-39.pyc
+     7469  11-06-2026 16:01   PIL/__pycache__/ImageTk.cpython-39.pyc
+     4656  11-06-2026 16:01   PIL/__pycache__/ImageTransform.cpython-39.pyc
+     8532  11-06-2026 16:01   PIL/__pycache__/ImageWin.cpython-39.pyc
+     1444  11-06-2026 16:01   PIL/__pycache__/ImtImagePlugin.cpython-39.pyc
+     5028  11-06-2026 16:01   PIL/__pycache__/IptcImagePlugin.cpython-39.pyc
+     9399  11-06-2026 16:01   PIL/__pycache__/Jpeg2KImagePlugin.cpython-39.pyc
+    18473  11-06-2026 16:01   PIL/__pycache__/JpegImagePlugin.cpython-39.pyc
+     7960  11-06-2026 16:01   PIL/__pycache__/JpegPresets.cpython-39.pyc
+     1468  11-06-2026 16:01   PIL/__pycache__/McIdasImagePlugin.cpython-39.pyc
+     2490  11-06-2026 16:01   PIL/__pycache__/MicImagePlugin.cpython-39.pyc
+     2320  11-06-2026 16:01   PIL/__pycache__/MpegImagePlugin.cpython-39.pyc
+     4513  11-06-2026 16:01   PIL/__pycache__/MpoImagePlugin.cpython-39.pyc
+     3367  11-06-2026 16:01   PIL/__pycache__/MspImagePlugin.cpython-39.pyc
+     6021  11-06-2026 16:01   PIL/__pycache__/PSDraw.cpython-39.pyc
+     1494  11-06-2026 16:01   PIL/__pycache__/PaletteFile.cpython-39.pyc
+     6904  11-06-2026 16:01   PIL/__pycache__/PalmImagePlugin.cpython-39.pyc
+     1259  11-06-2026 16:01   PIL/__pycache__/PcdImagePlugin.cpython-39.pyc
+     6087  11-06-2026 16:01   PIL/__pycache__/PcfFontFile.cpython-39.pyc
+     3991  11-06-2026 16:01   PIL/__pycache__/PcxImagePlugin.cpython-39.pyc
+     4700  11-06-2026 16:01   PIL/__pycache__/PdfImagePlugin.cpython-39.pyc
+    27333  11-06-2026 16:01   PIL/__pycache__/PdfParser.cpython-39.pyc
+     1251  11-06-2026 16:01   PIL/__pycache__/PixarImagePlugin.cpython-39.pyc
+    32141  11-06-2026 16:01   PIL/__pycache__/PngImagePlugin.cpython-39.pyc
+     8083  11-06-2026 16:01   PIL/__pycache__/PpmImagePlugin.cpython-39.pyc
+     5677  11-06-2026 16:01   PIL/__pycache__/PsdImagePlugin.cpython-39.pyc
+    11912  11-06-2026 16:01   PIL/__pycache__/PyAccess.cpython-39.pyc
+     3490  11-06-2026 16:01   PIL/__pycache__/QoiImagePlugin.cpython-39.pyc
+     4279  11-06-2026 16:01   PIL/__pycache__/SgiImagePlugin.cpython-39.pyc
+     7270  11-06-2026 16:01   PIL/__pycache__/SpiderImagePlugin.cpython-39.pyc
+     2033  11-06-2026 16:01   PIL/__pycache__/SunImagePlugin.cpython-39.pyc
+     1684  11-06-2026 16:01   PIL/__pycache__/TarIO.cpython-39.pyc
+     4311  11-06-2026 16:01   PIL/__pycache__/TgaImagePlugin.cpython-39.pyc
+    52927  11-06-2026 16:01   PIL/__pycache__/TiffImagePlugin.cpython-39.pyc
+    11170  11-06-2026 16:01   PIL/__pycache__/TiffTags.cpython-39.pyc
+     2914  11-06-2026 16:01   PIL/__pycache__/WalImageFile.cpython-39.pyc
+     7692  11-06-2026 16:01   PIL/__pycache__/WebPImagePlugin.cpython-39.pyc
+     3766  11-06-2026 16:01   PIL/__pycache__/WmfImagePlugin.cpython-39.pyc
+     1532  11-06-2026 16:01   PIL/__pycache__/XVThumbImagePlugin.cpython-39.pyc
+     2307  11-06-2026 16:01   PIL/__pycache__/XbmImagePlugin.cpython-39.pyc
+     2496  11-06-2026 16:01   PIL/__pycache__/XpmImagePlugin.cpython-39.pyc
+     1914  11-06-2026 16:01   PIL/__pycache__/__init__.cpython-39.pyc
+      303  11-06-2026 16:01   PIL/__pycache__/__main__.cpython-39.pyc
+     3237  11-06-2026 16:01   PIL/__pycache__/_binary.cpython-39.pyc
+     2031  11-06-2026 16:01   PIL/__pycache__/_deprecate.cpython-39.pyc
+      521  11-06-2026 16:01   PIL/__pycache__/_tkinter_finder.cpython-39.pyc
+     1412  11-06-2026 16:01   PIL/__pycache__/_typing.cpython-39.pyc
+     1548  11-06-2026 16:01   PIL/__pycache__/_util.cpython-39.pyc
+      215  11-06-2026 16:01   PIL/__pycache__/_version.cpython-39.pyc
+     9611  11-06-2026 16:01   PIL/__pycache__/features.cpython-39.pyc
+      265  11-06-2026 16:01   PIL/__pycache__/report.cpython-39.pyc
+
