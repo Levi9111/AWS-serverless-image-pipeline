@@ -1,0 +1,12 @@
+ ~/Desktop/serverless-image-pipeline/lambda  main !2 ?2  docker run --rm \                                                                               ok  15:59:46 
+  --user "$(id -u):$(id -g)" \
+  -e HOME=/tmp \
+  -v "$PWD":/var/task:z \
+  public.ecr.aws/sam/build-python3.9:latest \
+  pip install --no-cache-dir -r /var/task/requirements.txt -t /var/task/package
+Collecting Pillow==10.4.0
+  Downloading pillow-10.4.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (4.4 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.4/4.4 MB 3.6 MB/s eta 0:00:00
+Installing collected packages: Pillow
+Successfully installed Pillow-10.4.0
+
