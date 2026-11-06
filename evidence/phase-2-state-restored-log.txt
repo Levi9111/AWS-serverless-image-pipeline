@@ -1,0 +1,57 @@
+ ~/Desktop/serverless-image-pipeline  main !1 ?2  >....                                                                                                                
+  
+# --- Wait for Active ---
+for i in $(seq 1 30); do
+  s=$(awslocal --region us-west-2 lambda get-function-configuration \
+    --function-name image-processor --query 'State' --output text 2>/dev/null)
+  echo "  attempt $i: $s"                                            
+  [ "$s" = "Active" ] && break                                                
+  sleep 5                
+done                          
+  
+# --- Permission ---
+awslocal --region us-west-2 lambda add-permission \
+  --function-name image-processor \
+  --statement-id s3invoke \                        
+  --action lambda:InvokeFunction \ 
+  --principal s3.amazonaws.com \
+  --source-arn arn:aws:s3:::image-uploads
+  
+# --- Trigger ---                        
+awslocal --region us-west-2 s3api put-bucket-notification-configuration \
+  --bucket image-uploads \
+  --notification-configuration '{                                        
+    "LambdaFunctionConfigurations": [{
+      "LambdaFunctionArn": "arn:aws:lambda:us-west-2:000000000000:function:image-processor",
+      "Events": ["s3:ObjectCreated:*"]
+    }]                                                                                      
+  }'                                  
+    
+echo ""
+echo "=== Final verification ==="
+awslocal --region us-west-2 s3 ls
+awslocal --region us-west-2 lambda get-function-configuration --function-name image-processor --query 'State' --output text
+awslocal --region us-west-2 s3api get-bucket-notification-configuration --bucket image-uploads
+make_bucket: image-uploads
+make_bucket: image-thumbnails
+  attempt 1: Pending
+  attempt 2: Active
+{
+    "Statement": "{\"Sid\": \"s3invoke\", \"Effect\": \"Allow\", \"Action\": \"lambda:InvokeFunction\", \"Resource\": \"arn:aws:lambda:us-west-2:000000000000:function:image-processor\", \"Principal\": {\"Service\": \"s3.amazonaws.com\"}, \"Condition\": {\"ArnLike\": {\"AWS:SourceArn\": \"arn:aws:s3:::image-uploads\"}}}"
+}
+
+=== Final verification ===
+2026-11-06 17:12:22 image-uploads
+2026-11-06 17:12:23 image-thumbnails
+Active
+{
+    "LambdaFunctionConfigurations": [
+        {
+            "Id": "9bbb2c80",
+            "LambdaFunctionArn": "arn:aws:lambda:us-west-2:000000000000:function:image-processor",
+            "Events": [
+                "s3:ObjectCreated:*"
+            ]
+        }
+    ]
+}
