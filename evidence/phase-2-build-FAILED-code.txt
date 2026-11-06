@@ -1,0 +1,53 @@
+ ~/De/serverless-image-pipeline/lambda  main !2  # Clean any leftover build artifacts from earlier attempts
+rm -rf package function.zip
+
+# Build Pillow wheels for the Lambda runtime's Python 3.9 inside a matching container
+docker run --rm \
+  -v "$PWD":/var/task \
+  --entrypoint /bin/bash \
+  public.ecr.aws/sam/build-python3.9:latest \
+  -c "pip install --no-cache-dir -r /var/task/requirements.txt -t /var/task/package"
+
+# Copy our handler in
+cp app.py package/
+
+# Zip it
+cd package
+zip -r ../function.zip . > /dev/null
+cd ..
+
+# Confirm the zip exists and has the right top-level structure
+ls -lh function.zip
+unzip -l function.zip | head -20
+Unable to find image 'public.ecr.aws/sam/build-python3.9:latest' locally
+latest: Pulling from sam/build-python3.9
+393064f630e5: Pull complete 
+e3a6a0e77d32: Pull complete 
+feb8f6bc402b: Pull complete 
+8eac0dc03ff5: Pull complete 
+5b85092ed9b6: Pull complete 
+7230d0e5a13d: Pull complete 
+b831e8a6c2ce: Pull complete 
+694db73aea40: Pull complete 
+a7f1387fce7f: Pull complete 
+3ada9ef2115c: Pull complete 
+cee9bf814270: Pull complete 
+f557d990f7c8: Pull complete 
+b1c0ff965438: Pull complete 
+951059efc3bb: Pull complete 
+ea0c04f93446: Pull complete 
+Digest: sha256:894ad214b4b07b865c56b94410a788b3ed89218763633f203f8abca477ee31c3
+Status: Downloaded newer image for public.ecr.aws/sam/build-python3.9:latest
+ERROR: Could not open requirements file: [Errno 13] Permission denied: '/var/task/requirements.txt'
+cp: cannot create regular file 'package/': Not a directory
+cd: no such file or directory: package
+-rw-r--r--. 1 levi9111 docker 1.6K Nov  5 22:34 function.zip
+Archive:  function.zip
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+     2548  11-05-2026 22:25   app.py
+       14  11-05-2026 22:28   requirements.txt
+        0  11-05-2026 21:26   Dockerfile
+---------                     -------
+     2562                     3 files
+
