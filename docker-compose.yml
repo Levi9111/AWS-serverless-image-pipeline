@@ -4,7 +4,7 @@ services:
     ports:
       - "4566:4566"
     environment:
-      - SERVICES=s3,dynamodb,lambda
+      - SERVICES=s3,dynamodb,lambda, logs
       - DEBUG=1
       - PERSISTENCE=1
       - LAMBDA_DOCKER_NETWORK=host
