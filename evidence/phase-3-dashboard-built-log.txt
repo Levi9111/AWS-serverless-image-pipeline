@@ -1,0 +1,39 @@
+ ~/Desktop/serverless-image-pipeline  main !1 ?2  cd ~/Desktop/serverless-image-pipeline                                                                                        INT  18:01:06 
+docker-compose up -d --build dashboard
+[+] Building 51.3s (12/12) FINISHED                                                                                                                                                            
+ => [internal] load local bake definitions                                                                                                                                                0.0s
+ => => reading from stdin 616B                                                                                                                                                            0.0s
+ => [internal] load build definition from Dockerfile                                                                                                                                      0.0s
+ => => transferring dockerfile: 258B                                                                                                                                                      0.0s
+ => [internal] load metadata for docker.io/library/python:3.11-slim                                                                                                                       3.9s
+ => [internal] load .dockerignore                                                                                                                                                         0.1s
+ => => transferring context: 2B                                                                                                                                                           0.0s
+ => [1/5] FROM docker.io/library/python:3.11-slim@sha256:65bd3d9f1d7fa268dd1909973ba7eb4bdf41f6dcf2cfbe76ba9528b170f3fd79                                                                15.8s
+ => => resolve docker.io/library/python:3.11-slim@sha256:65bd3d9f1d7fa268dd1909973ba7eb4bdf41f6dcf2cfbe76ba9528b170f3fd79                                                                 0.1s
+ => => sha256:7efbce397249e9202b070b8e638baff71160948c640b9a44f2226419a71f410d 14.46MB / 14.46MB                                                                                          3.7s
+ => => sha256:bbe7053e6def9842d628414346e26f25e499463adb6ca48c0c8932e036e44000 249B / 249B                                                                                                1.0s
+ => => sha256:53daecf7856e9b7235583f1ec326387aae7d29af3d5cd2efc20246259ab817cc 1.29MB / 1.29MB                                                                                            2.9s
+ => => sha256:37fb86c2a767b88d500c6872195f88078f64765fe0d2f9cc375cc2efbd4c0a41 29.86MB / 29.86MB                                                                                         11.2s
+ => => extracting sha256:37fb86c2a767b88d500c6872195f88078f64765fe0d2f9cc375cc2efbd4c0a41                                                                                                 1.0s
+ => => extracting sha256:53daecf7856e9b7235583f1ec326387aae7d29af3d5cd2efc20246259ab817cc                                                                                                 0.3s
+ => => extracting sha256:7efbce397249e9202b070b8e638baff71160948c640b9a44f2226419a71f410d                                                                                                 2.0s
+ => => extracting sha256:bbe7053e6def9842d628414346e26f25e499463adb6ca48c0c8932e036e44000                                                                                                 0.7s
+ => [internal] load build context                                                                                                                                                         0.2s
+ => => transferring context: 2.97kB                                                                                                                                                       0.0s
+ => [2/5] WORKDIR /app                                                                                                                                                                    9.4s
+ => [3/5] COPY requirements.txt .                                                                                                                                                         1.4s
+ => [4/5] RUN pip install --no-cache-dir -r requirements.txt                                                                                                                             14.2s
+ => [5/5] COPY app.py .                                                                                                                                                                   0.3s 
+ => exporting to image                                                                                                                                                                    5.6s 
+ => => exporting layers                                                                                                                                                                   4.0s 
+ => => exporting manifest sha256:e273b8ef81d99ed29b369f76b8a7751401ca92e49e4234568db73c48926c4ea1                                                                                         0.0s 
+ => => exporting config sha256:c1c6663b930686f3643b9f9d29ec16f2ddf5c527a9e4c743d226644d3c519b30                                                                                           0.0s 
+ => => exporting attestation manifest sha256:aa9e612cc61dea32e22f292d530a76b4b83b21b1166a2ae4f35d117480ce2a70                                                                             0.1s 
+ => => exporting manifest list sha256:5776a36a67edfe1a0d00c2d96374df5e6ffc438a93737cf0e8729e9747eeb8fc                                                                                    0.1s
+ => => naming to docker.io/library/serverless-image-pipeline-dashboard:latest                                                                                                             0.0s
+ => => unpacking to docker.io/library/serverless-image-pipeline-dashboard:latest                                                                                                          1.2s
+ => resolving provenance for metadata file                                                                                                                                                0.0s
+[+] up 3/3
+ ✔ Image serverless-image-pipeline-dashboard        Built                                                                                                                                 51.4s
+ ✔ Container serverless-image-pipeline-localstack-1 Running                                                                                                                                0.0s
+ ✔ Container serverless-image-pipeline-dashboard-1  Started                                

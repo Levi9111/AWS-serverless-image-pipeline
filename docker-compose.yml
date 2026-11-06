@@ -27,6 +27,8 @@ services:
       - AWS_ENDPOINT_URL=http://localstack:4566
       - AWS_REQUEST_CHECKSUM_CALCULATION=when_required
       - AWS_RESPONSE_CHECKSUM_VALIDATION=when_required
+      - TABLE_NAME=ImageMetadata
+      - THUMBNAIL_BUCKET=image-thumbnails
     depends_on:
       - localstack
     networks:
