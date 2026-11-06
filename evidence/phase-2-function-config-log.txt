@@ -1,0 +1,61 @@
+ ~/De/serverless-image-pipeline/lambda  main  awslocal --region us-west-2 lambda create-function \
+  --function-name image-processor \
+  --runtime python3.9 \
+  --handler app.lambda_handler \
+  --zip-file fileb://function.zip \
+  --role arn:aws:iam::000000000000:role/lambda-role \
+  --timeout 30 \
+  --memory-size 256 \
+  --environment "Variables={AWS_DEFAULT_REGION=us-west-2,AWS_ENDPOINT_URL=http://localhost:4566,UPLOAD_BUCKET=image-uploads,THUMBNAIL_BUCKET=image-thumbnails,TABLE_NAME=ImageMetadata}"
+============================================================================
+  WARNING: 'awslocal' is deprecated. Use 'lstk aws' instead.
+============================================================================
+
+  'awslocal' no longer receives updates.
+
+  Get started with 'lstk', the new LocalStack CLI:
+  https://docs.localstack.cloud/aws/developer-tools/running-localstack/lstk/
+
+  Switch your scripts and CI workflows to 'lstk aws':
+  https://docs.localstack.cloud/aws/developer-tools/running-localstack/lstk/migration/#infrastructure-as-code
+
+============================================================================
+
+Continuing with 'awslocal'...
+
+{
+    "FunctionName": "image-processor",
+    "FunctionArn": "arn:aws:lambda:us-west-2:000000000000:function:image-processor",
+    "Runtime": "python3.9",
+    "Role": "arn:aws:iam::000000000000:role/lambda-role",
+    "Handler": "app.lambda_handler",
+    "CodeSize": 4861454,
+    "Description": "",
+    "Timeout": 30,
+    "MemorySize": 256,
+    "LastModified": "2026-11-06T10:25:22.236835+0000",
+    "CodeSha256": "Eufe53nLQDpn5jOSMMQ5IFPYQMInRR0VqiMKrQ4wGaU=",
+    "Version": "$LATEST",
+    "Environment": {
+        "Variables": {
+            "AWS_DEFAULT_REGION": "us-west-2",
+            "AWS_ENDPOINT_URL": "http://localhost:4566",
+            "UPLOAD_BUCKET": "image-uploads",
+            "THUMBNAIL_BUCKET": "image-thumbnails",
+            "TABLE_NAME": "ImageMetadata"
+        }
+    },
+    "TracingConfig": {
+        "Mode": "PassThrough"
+    },
+    "RevisionId": "92afa792-5560-4684-8e82-8a0a85ea07d7",
+    "State": "Pending",
+    "StateReason": "The function is being created.",
+    "StateReasonCode": "Creating",
+    "PackageType": "Zip",
+    "Architectures": [
+        "x86_64"
+    ],
+    "EphemeralStorage": {
+        "Size": 512
+:

@@ -1,0 +1,21 @@
+ ~/Desktop/serverless-image-pipeline/lambda  main !1 ?3  for i in $(seq 1 30); do                                                                                               INT  16:53:55 
+  state=$(awslocal --region us-west-2 lambda get-function-configuration \
+    --function-name image-processor --query 'State' --output text 2>/dev/null)
+  echo "[$(date +%H:%M:%S)] attempt $i: State=$state"
+  if [ "$state" = "Active" ]; then
+    echo "✅ Function is Active"
+    break
+  fi     
+  if [ "$state" = "Failed" ]; then
+    echo "❌ Failed — reason:"
+    awslocal --region us-west-2 lambda get-function-configuration \
+      --function-name image-processor --query StateReason --output text
+    break
+  fi     
+  sleep 10
+done
+[16:53:59] attempt 1: State=Active
+✅ Function is Active
+
+phase-2-lambda-ACTIVE
+
