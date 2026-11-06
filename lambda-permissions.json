@@ -1,0 +1,18 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["s3:GetObject", "s3:PutObject"],
+      "Resource": [
+        "arn:aws:s3:::shanjid-2026-image-uploads/*",
+        "arn:aws:s3:::shanjid-2026-image-thumbnails/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["dynamodb:PutItem"],
+      "Resource": "arn:aws:dynamodb:us-west-2:199720489393:table/ImageMetadata"
+    }
+  ]
+}

@@ -60,7 +60,6 @@ def lambda_handler(event, context):
         Key=thumb_key,
         Body=buf,
         ContentType="image/jpeg",
-        ACL="public-read",
     )
     print(f"[handler] uploaded thumbnail s3://{THUMBNAIL_BUCKET}/{thumb_key}")
 
