@@ -1,0 +1,45 @@
+ ~/De/serverless-image-pipeline  main !2 ?1  awslocal --region us-west-2 s3 cp test.jpg s3://image-uploads/test.jpg
+upload: ./test.jpg to s3://image-uploads/test.jpg               
+
+ ~/De/serverless-image-pipeline  main !2 ?1  sleep 10                           ok  17:45:23 
+
+echo "=== DynamoDB ==="
+awslocal --region us-west-2 dynamodb scan --table-name ImageMetadata
+
+echo "=== Thumbnails bucket ==="
+awslocal --region us-west-2 s3 ls s3://image-thumbnails
+
+echo "=== Latest Lambda logs ==="
+awslocal --region us-west-2 logs filter-log-events \
+  --log-group-name /aws/lambda/image-processor \
+  --limit 20 \
+  --query 'events[*].message' --output text | tail -10
+=== DynamoDB ===
+{
+    "Items": [
+        {
+            "size_bytes": {
+                "N": "6208"
+            },
+            "image_id": {
+                "S": "626e940c-a142-496f-b015-a4b0113b5718"
+            },
+            "thumbnail_key": {
+                "S": "thumb-test.jpg"
+            },
+            "original_key": {
+                "S": "test.jpg"
+            },
+            "uploaded_at": {
+                "S": "2026-11-06T11:45:23.278755Z"
+            }
+        }
+    ],
+    "Count": 1,
+    "ScannedCount": 1,
+    "ConsumedCapacity": null
+}
+=== Thumbnails bucket ===
+2026-11-06 17:45:23       1888 thumb-test.jpg
+=== Latest Lambda logs ===
+START RequestId: 59048890-021a-4233-812d-a613e29b08fb Version: $LATEST  [handler] processing s3://image-uploads/test.jpg      [ERROR] NoSuchKey: An error occurred (NoSuchKey) when calling     raise error_class(parsed_response, operation_name)n END RequestId: 59048890-021a-4233-812d-a613e29b08fb   REPORT RequestId: 59048890-021a-4233-812d-a613e29b08fb  Duration: 364.67 ms  Billed Duration: 365 ms  Memory Size: 256 MB     Max Memory Used: 256 MB         START RequestId: 1527277f-27b4-44ec-a699-10e3661efcef Version: $LATEST        [handler] processing s3://image-uploads/test.jpg      [ERROR] UnidentifiedImageError: cannot identify image file <_io.BytesI    raise UnidentifiedImageError(msg) 34END RequestId: 1527277f-27b4-44ec-a699-10e3661efcef  REPORT RequestId: 1527277f-27b4-44ec-a699-10e3661efcef   Duration: 78.25 ms      Billed Duration: 79 ms        Memory Size: 256 MB     Max Memory Used: 256 MB         START RequestId: 1527277f-27b4-44ec-a699-10e3661efcef Version: $LATEST        [handler] processing s3://image-uploads/test.jpg      [ERROR] UnidentifiedImageError: cannot identify image file <_io.BytesIO object    raise UnidentifiedImageError(msg) 34END RequestId: 1527277f-27b4-44ec-a699-10e3661efcef  REPORT RequestId: 1527277f-27b4-44ec-a699-10e3661efcef   Duration: 22.27 ms      Billed Duration: 23 ms        Memory Size: 256 MB     Max Memory Used: 256 MB         START RequestId: 2584bcb8-0e01-467e-a0ec-127d8b6b040b Version: $LATEST        [handler] processing s3://image-uploads/test.jpg      [ERROR] UnidentifiedImageError: cannot identify image file <_io.BytesIO object    raise UnidentifiedImageError(msg) 34END RequestId: 2584bcb8-0e01-467e-a0ec-127d8b6b040b  REPORT RequestId: 2584bcb8-0e01-467e-a0ec-127d8b6b040b   Duration: 34.09 ms      Billed Duration: 35 ms        Memory Size: 256 MB     Max Memory Used: 256 MB

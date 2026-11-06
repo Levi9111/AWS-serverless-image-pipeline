@@ -4,15 +4,17 @@ services:
     ports:
       - "4566:4566"
     environment:
-      - SERVICES=s3,dynamodb,lambda, logs
+      - SERVICES=s3,dynamodb,lambda,logs
       - DEBUG=1
       - PERSISTENCE=1
-      - LAMBDA_DOCKER_NETWORK=host
+      - LAMBDA_DOCKER_NETWORK=localstack-net     
     volumes:
-      - "./localstack_data:/var/lib/localstack:z"
+      - "./localstack_data:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
     security_opt:
-      - label=disable 
+      - label=disable
+    networks:
+      - localstack-net
 
   dashboard:
     build: ./dashboard
@@ -23,5 +25,13 @@ services:
       - AWS_SECRET_ACCESS_KEY=test
       - AWS_DEFAULT_REGION=us-west-2
       - AWS_ENDPOINT_URL=http://localstack:4566
+      - AWS_REQUEST_CHECKSUM_CALCULATION=when_required
+      - AWS_RESPONSE_CHECKSUM_VALIDATION=when_required
     depends_on:
       - localstack
+    networks:
+      - localstack-net
+
+networks:
+  localstack-net:
+    name: localstack-net
