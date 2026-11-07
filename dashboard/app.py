@@ -206,7 +206,7 @@ WELCOME_HTML = """
     <div class="container">
         <div class="badge">
             <span class="pulse"></span>
-            <span>BACKEND API SERVICE ONLINE</span>
+            <span>BACKEND API SERVICE ONLINE &bull; v1.1.0 (CI/CD Active)</span>
         </div>
         <h1>⚡ Serverless Image Pipeline API</h1>
         <p class="subtitle">
@@ -271,6 +271,7 @@ def health():
     return jsonify(
         {
             "status": "ok",
+            "version": "1.1.0",
             "service": "serverless-image-pipeline-backend",
             "region": REGION,
             "dynamodb_table": TABLE,
