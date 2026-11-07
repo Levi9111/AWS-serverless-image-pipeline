@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Sun, Moon, RefreshCw, Activity } from 'lucide-react';
+import { Sun, Moon, RefreshCw, Activity } from 'lucide-react';
 
 interface HeaderProps {
   darkMode: boolean;
@@ -32,8 +32,12 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           {/* Brand & Title */}
           <div className="flex items-center gap-3.5">
-            <div className="relative flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-fuchsia-500 text-white shadow-lg shadow-indigo-500/30 dark:shadow-indigo-500/20">
-              <Sparkles className="w-6 h-6" />
+            <div className="relative flex items-center justify-center w-12 h-12 shrink-0">
+              <img
+                src="/logo.png"
+                alt="Serverless Image Pipeline Logo"
+                className="w-12 h-12 rounded-2xl object-cover shadow-lg shadow-indigo-500/25 dark:shadow-indigo-500/20 select-none"
+              />
               <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-white dark:border-slate-950"></span>
@@ -103,4 +107,3 @@ export const Header: React.FC<HeaderProps> = ({
     </header>
   );
 };
-
