@@ -80,3 +80,6 @@ def lambda_handler(event, context):
         "statusCode": 200,
         "body": {"image_id": image_id, "thumbnail_key": thumb_key},
     }
+
+
+print("Hello from CI/CD!")
