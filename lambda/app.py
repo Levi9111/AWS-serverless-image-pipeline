@@ -1,3 +1,4 @@
+import urllib
 import boto3
 import os
 import io
@@ -30,7 +31,7 @@ def lambda_handler(event, context):
     # The S3 event tells us which object was uploaded.
     record = event["Records"][0]["s3"]
     source_bucket = record["bucket"]["name"]
-    object_key = record["object"]["key"]
+    object_key = urllib.parse.unquote_plus(record["object"]["key"])
 
     print(f"[handler] processing s3://{source_bucket}/{object_key}")
 
@@ -47,7 +48,7 @@ def lambda_handler(event, context):
     image_data = obj["Body"].read()
 
     # 2. Create the thumbnail
-    img = Image.open(io.BytesIO(image_data))
+    img = Image.open(io.BytesIO(image_data)).convert("RGB")
     img.thumbnail(THUMBNAIL_SIZE)
     buf = io.BytesIO()
     img.save(buf, format="JPEG")
