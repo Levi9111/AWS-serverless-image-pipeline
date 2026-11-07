@@ -4,14 +4,23 @@ import os
 
 app = Flask(__name__)
 
-REGION    = os.environ.get('AWS_DEFAULT_REGION', 'us-west-2')
-ENDPOINT  = os.environ.get('AWS_ENDPOINT_URL', 'http://localstack:4566')
-TABLE     = os.environ.get('TABLE_NAME', 'ImageMetadata')
-THUMB_BKT = os.environ.get('THUMBNAIL_BUCKET', 'image-thumbnails')
+REGION = os.environ.get("AWS_DEFAULT_REGION", "us-west-2")
+ENDPOINT = os.environ.get("AWS_ENDPOINT_URL")
+TABLE = os.environ.get("TABLE_NAME", "ImageMetadata")
+THUMB_BKT = os.environ.get("THUMBNAIL_BUCKET", "image-thumbnails")
 
-dynamodb = boto3.resource('dynamodb', region_name=REGION, endpoint_url=ENDPOINT)
-s3       = boto3.client('s3',       region_name=REGION, endpoint_url=ENDPOINT)
-table    = dynamodb.Table(TABLE)
+
+boto_kwargs = {"region_name": REGION}
+if ENDPOINT:
+    boto_kwargs["endpoint_url"] = ENDPOINT
+
+dynamodb = boto3.resource("dynamodb", **boto_kwargs)
+s3 = boto3.client("s3", **boto_kwargs)
+
+
+dynamodb = boto3.resource("dynamodb", region_name=REGION, endpoint_url=ENDPOINT)
+s3 = boto3.client("s3", region_name=REGION, endpoint_url=ENDPOINT)
+table = dynamodb.Table(TABLE)
 
 TEMPLATE = """
 <!DOCTYPE html>
@@ -59,23 +68,27 @@ TEMPLATE = """
 </html>
 """
 
-@app.route('/')
+
+@app.route("/")
 def index():
-    items = table.scan().get('Items', [])
-    items.sort(key=lambda x: x.get('uploaded_at', ''), reverse=True)
+    items = table.scan().get("Items", [])
+    items.sort(key=lambda x: x.get("uploaded_at", ""), reverse=True)
     return render_template_string(TEMPLATE, items=items)
 
-@app.route('/thumb/<path:key>')
+
+@app.route("/thumb/<path:key>")
 def thumb(key):
     try:
         obj = s3.get_object(Bucket=THUMB_BKT, Key=key)
-        return Response(obj['Body'].read(), mimetype='image/jpeg')
+        return Response(obj["Body"].read(), mimetype="image/jpeg")
     except Exception as e:
         return Response(f"Thumbnail not found: {e}", status=404)
 
-@app.route('/health')
-def health():
-    return jsonify(status='ok')
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=False)
+@app.route("/health")
+def health():
+    return jsonify(status="ok")
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=False)
