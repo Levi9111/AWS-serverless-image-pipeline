@@ -1,5 +1,6 @@
-from flask import Flask, Response, jsonify, render_template_string
+from flask import Flask, Response, jsonify, render_template_string, request
 from flask_cors import CORS
+from botocore.config import Config
 import boto3
 import os
 from decimal import Decimal
@@ -11,6 +12,7 @@ REGION = os.environ.get("AWS_DEFAULT_REGION", "us-west-2")
 ENDPOINT = os.environ.get("AWS_ENDPOINT_URL")
 TABLE = os.environ.get("TABLE_NAME", "ImageMetadata")
 THUMB_BKT = os.environ.get("THUMBNAIL_BUCKET", "shanjid-2026-image-thumbnails")
+UPLOAD_BKT = os.environ.get("UPLOAD_BUCKET", "shanjid-2026-image-uploads")
 
 # Configure boto3
 boto_kwargs = {"region_name": REGION}
@@ -18,7 +20,7 @@ if ENDPOINT:
     boto_kwargs["endpoint_url"] = ENDPOINT
 
 dynamodb = boto3.resource("dynamodb", **boto_kwargs)
-s3 = boto3.client("s3", **boto_kwargs)
+s3 = boto3.client("s3", config=Config(signature_version="s3v4"), **boto_kwargs)
 table = dynamodb.Table(TABLE)
 
 
@@ -236,6 +238,10 @@ WELCOME_HTML = """
                 <span style="color: var(--muted);">Returns processed image metadata JSON from DynamoDB</span>
             </div>
             <div class="endpoint-row">
+                <div><span class="method">POST</span> <code>/api/upload-url</code></div>
+                <span style="color: var(--muted);">Generates a 5-minute S3 presigned PUT URL for uploads</span>
+            </div>
+            <div class="endpoint-row">
                 <div><span class="method">GET</span> <code>/thumb/&lt;thumbnail_key&gt;</code></div>
                 <span style="color: var(--muted);">Streams JPEG thumbnail binary from Amazon S3</span>
             </div>
@@ -276,8 +282,33 @@ def health():
             "region": REGION,
             "dynamodb_table": TABLE,
             "thumbnail_bucket": THUMB_BKT,
+            "upload_bucket": UPLOAD_BKT,
         }
     )
+
+
+@app.route("/api/upload-url", methods=["POST"])
+def get_upload_url():
+    data = request.get_json() or {}
+    filename = data.get("filename")
+
+    if not filename:
+        return jsonify({"error": "Filename is required"}), 400
+
+    try:
+        # Generate a presigned URL valid for 5 minutes
+        presigned_url = s3.generate_presigned_url(
+            ClientMethod="put_object",
+            Params={
+                "Bucket": UPLOAD_BKT,
+                "Key": filename,
+                "ContentType": "image/jpeg",  # Assuming jpeg for simplicity
+            },
+            ExpiresIn=300,
+        )
+        return jsonify({"upload_url": presigned_url, "filename": filename})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/api/images", methods=["GET"])
