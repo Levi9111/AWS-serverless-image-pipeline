@@ -109,6 +109,7 @@ Every real-world failure encountered while building and migrating this system wa
 | **05** | [**Containerized Flask S3 Proxy Architecture**](docs/case-studies/05-phase-3-dashboard.md) | `Phase 3` | Why proxying thumbnails through Flask (`/thumb/<key>`) is superior to S3 presigned URLs when browser clients cannot resolve internal Docker DNS (`localstack:4566`) or when S3 buckets block public access. |
 | **06** | [**Migrating from LocalStack to Real AWS**](docs/case-studies/05-phase-4-real-aws-errors.md) | `Phase 4A` | Navigating 5 real-AWS "Deny by Default" guardrails: IAM user self-bootstrapping via CloudShell, reserved `AWS_*` Lambda environment variables, and S3's `AccessControlListNotSupported` rejection of `ACL="public-read"`. |
 | **07** | [**IAM Instance Profiles, EC2, & Live React Console**](docs/case-studies/06-phase-4-iam-and-ec2.md) | `Phase 4B` | How Docker containers on EC2 authenticate to DynamoDB and S3 without `AWS_ACCESS_KEY_ID` via the EC2 Instance Metadata Service (`169.254.169.254`) and IAM Instance Profiles (`ec2-dashboard-profile`). |
+| **08** | [**CI/CD OIDC Authentication & GitHub Immutable ID Trap**](docs/case-studies/07-phase-6-cicd-oidc-errors.md) | `Phase 6` | Resolving `sts:AssumeRoleWithWebIdentity` failures caused by GitHub's immutable numeric repository IDs in OIDC `sub` claims, plus fixing a case-sensitive Docker Hub authorization error (`Levi9111` vs `levi9111`). |
 
 ---
 
