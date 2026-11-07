@@ -18,7 +18,7 @@
 <p align="center">
   <a href="#-executive-overview">Overview</a> •
   <a href="#-system-architecture">Architecture</a> •
-  <a href="#-engineering-case-studies-root-cause-analyses">Case Studies (8)</a> •
+  <a href="#-engineering-case-studies-root-cause-analyses">Case Studies (9)</a> •
   <a href="#-visual-evidence--verification-log-archive">Evidence & Logs</a> •
   <a href="#-cicd-automation-pipelines">CI/CD</a> •
   <a href="./docs/architecture.md">Architecture Doc</a> •
@@ -54,7 +54,7 @@ Rather than treating cloud deployment as a black box, this project was built acr
 | **Cross-Platform Binary Compatibility** | Compiled `Pillow==10.4.0` C extensions (`_imaging.cpython-39-x86_64-linux-gnu.so`) inside `public.ecr.aws/sam/build-python3.9` to guarantee Amazon Linux 2 ABI compatibility from a Fedora Python 3.14 host. |
 | **Zero-Secret Compute Security** | **0 hardcoded AWS keys** in production containers: EC2 authenticates via **IMDS + IAM Instance Profile** (`ec2-dashboard-profile`), and GitHub Actions authenticates via **AWS OIDC** (`GitHubActions-DeployRole`). |
 | **Private S3 Media Proxy** | Thumbnail bucket (`shanjid-2026-image-thumbnails`) remains **100% private** (`BucketOwnerEnforced`); images are streamed securely through Flask (`GET /thumb/<key>`). |
-| **Documented Root-Cause Analyses** | **8 comprehensive engineering post-mortems** backed by **29 screenshots** and **8 raw terminal log captures**. |
+| **Documented Root-Cause Analyses** | **9 comprehensive engineering post-mortems** backed by **37 screenshots** and **8 raw terminal log captures**. |
 
 ---
 
@@ -177,6 +177,27 @@ Every phase of this project is backed by verifiable terminal logs (`.txt`) and s
 
 ---
 
+### Phase 6 — CI/CD Pipelines (GitHub Actions OIDC, Docker Hub & EC2 SSH Rollout)
+
+| 1. Initial OIDC `AssumeRoleWithWebIdentity` Failure | 2. OIDC Fixed (`repo:Levi9111@*/...` Immutable ID Match) |
+| :---: | :---: |
+| ![OIDC Deploy Fail](evidence/phase-6-cd-deploy-fail.png) | ![OIDC Auth Success](evidence/phase-6-oidc-auth-success.png) |
+| 🖼️ **Workflow Tree:** [`phase-6-repo-workflows.png`](evidence/phase-6-repo-workflows.png) | Authenticated as `assumedRoleId ...:GitHubActions` |
+
+| 3. Frontend CI/CD Pipeline Green (`1m 1s`) | 4. Live S3 Frontend Updated via CI/CD (`1 / 1` Badge Fixed) |
+| :---: | :---: |
+| ![Frontend Actions Success](evidence/phase-6-github-actions-success.png) | ![CI/CD Live Result](evidence/phase-6-cicd-live-result.png) |
+
+| 5. Backend CI/CD — EC2 SSH Container Rollout (`30s`) | 6. Live EC2 Backend Root UI (`v1.1.0 (CI/CD Active)`) |
+| :---: | :---: |
+| ![Backend SSH Rollout](evidence/phase-6-backend-ssh-success.png) | ![Backend v1.1.0 Live](evidence/phase-6-backend-live.png) |
+
+| 7. Serverless Lambda CI/CD Pipeline (`deploy-lambda.yml` — `43s`) |
+| :---: |
+| ![Lambda Actions Success](evidence/phase-6-lambda-actions-success.png) |
+
+---
+
 ## 🔄 CI/CD Automation Pipelines (`.github/workflows/`)
 
 All three tiers are continuously deployed on push to `main` using path-based triggers:
@@ -198,7 +219,7 @@ serverless-image-pipeline/
 ├── docs/
 │   ├── architecture.md                                    # Detailed system architecture, data model & IAM matrix
 │   ├── runbook.md                                         # Step-by-step LocalStack & AWS operational runbook
-│   └── case-studies/                                      # 8 engineering root-cause analysis documents
+│   └── case-studies/                                      # 9 engineering root-cause analysis documents
 │       ├── 00-phase-0-localstack-permission-crash.md
 │       ├── 01-phase-1-region-drift.md
 │       ├── 02-phase-2-lambda-deployment-package.md
@@ -206,8 +227,9 @@ serverless-image-pipeline/
 │       ├── 04-phase-2-pipeline-working.md
 │       ├── 05-phase-3-dashboard.md
 │       ├── 05-phase-4-real-aws-errors.md
-│       └── 06-phase-4-iam-and-ec2.md
-├── evidence/                                              # 29 screenshots (.png) + 8 raw terminal logs (.txt)
+│       ├── 06-phase-4-iam-and-ec2.md
+│       └── 07-phase-6-cicd-oidc-errors.md
+├── evidence/                                              # 37 screenshots (.png) + 8 raw terminal logs (.txt)
 ├── .github/workflows/                                     # Automated CI/CD pipelines
 │   ├── deploy-lambda.yml
 │   ├── deploy-backend.yml

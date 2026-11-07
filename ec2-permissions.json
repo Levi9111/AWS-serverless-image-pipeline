@@ -8,6 +8,11 @@
     },
     {
       "Effect": "Allow",
+      "Action": ["s3:PutObject"],
+      "Resource": "arn:aws:s3:::shanjid-2026-image-uploads/*"
+    },
+    {
+      "Effect": "Allow",
       "Action": ["dynamodb:Scan"],
       "Resource": "arn:aws:dynamodb:us-west-2:199720489393:table/ImageMetadata"
     }
