@@ -1,0 +1,46 @@
+name: Deploy Lambda
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "lambda/**"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::199720489393:role/GitHubActions-DeployRole
+          aws-region: us-west-2
+
+      - name: Build Deployment Package
+        run: |
+          cd lambda
+          rm -rf package function.zip
+          # Run pip inside a Python 3.9 container to ensure Linux compatibility
+          docker run --rm \
+            --user "$(id -u):$(id -g)" \
+            -e HOME=/tmp \
+            -v "$PWD":/var/task \
+            public.ecr.aws/sam/build-python3.9:latest \
+            pip install --no-cache-dir -r /var/task/requirements.txt -t /var/task/package
+          # Copy code and zip
+          cp app.py package/
+          (cd package && zip -r ../function.zip .)
+
+      - name: Update Lambda Function
+        run: |
+          aws lambda update-function-code \
+            --function-name image-processor \
+            --zip-file fileb://lambda/function.zip \
+            --region us-west-2
