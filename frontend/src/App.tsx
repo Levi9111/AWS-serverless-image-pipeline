@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { AlertTriangle, RotateCcw, ServerCrash } from 'lucide-react';
 import type { ImageData } from './types';
 import { Header } from './components/Header';
+import { ImageUploader } from './components/ImageUploader';
 import { SearchBar } from './components/SearchBar';
 import { ImageGrid } from './components/ImageGrid';
 import { LoadingSkeleton } from './components/LoadingSkeleton';
@@ -144,7 +145,7 @@ export function App() {
 
         {/* Main Dashboard Content */}
         <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
-          {/* Hero Intro & Search Bar */}
+          {/* Hero Intro, Upload Zone & Search Bar */}
           <div className="text-center max-w-2xl mx-auto mb-6">
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white mb-2">
               Processed Media Gallery
@@ -153,6 +154,8 @@ export function App() {
               Inspect automatically resized S3 thumbnails, payload sizes, and DynamoDB metadata records in real time.
             </p>
           </div>
+
+          <ImageUploader onUploadSuccess={handleRefresh} />
 
           <SearchBar
             searchQuery={searchQuery}
