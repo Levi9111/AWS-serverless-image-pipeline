@@ -1,7 +1,7 @@
 <div align="center">
   <a href="./05-phase-4-real-aws-errors.md">⬅️ Prev: Phase 4A — Real AWS Migration</a> &nbsp;|&nbsp;
   <a href="../../README.md">🏠 Back to Main README</a> &nbsp;|&nbsp;
-  <a href="./07-phase-6-cicd-oidc-errors.md">Next: Phase 6 — CI/CD & OIDC Authentication ➡️</a>
+  <a href="./06-phase-img-process-bug.md">Next: Lambda Image Processing Bug Fixes ➡️</a>
 </div>
 
 ---
@@ -88,5 +88,5 @@ Finally, the React + TypeScript + Tailwind CSS + GSAP frontend was built and dep
 <div align="center">
   <a href="./05-phase-4-real-aws-errors.md">⬅️ Prev: Phase 4A — Real AWS Migration</a> &nbsp;|&nbsp;
   <a href="../../README.md">🏠 Back to Main README</a> &nbsp;|&nbsp;
-  <a href="./07-phase-6-cicd-oidc-errors.md">Next: Phase 6 — CI/CD & OIDC Authentication ➡️</a>
+  <a href="./06-phase-img-process-bug.md">Next: Lambda Image Processing Bug Fixes ➡️</a>
 </div>

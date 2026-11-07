@@ -1,5 +1,5 @@
 <div align="center">
-  <a href="./06-phase-4-iam-and-ec2.md">⬅️ Prev: Phase 4B — IAM Instance Profiles & EC2</a> &nbsp;|&nbsp;
+  <a href="./06-phase-img-process-bug.md">⬅️ Prev: Lambda Image Processing Bug Fixes</a> &nbsp;|&nbsp;
   <a href="../../README.md">🏠 Back to Main README</a> &nbsp;|&nbsp;
   <a href="../architecture.md">🏗️ System Architecture ➡️</a>
 </div>
@@ -145,7 +145,7 @@ Pushing changes to `lambda/**` triggered `deploy-lambda.yml`, which compiled `Pi
 ---
 
 <div align="center">
-  <a href="./06-phase-4-iam-and-ec2.md">⬅️ Prev: Phase 4B — IAM Instance Profiles & EC2</a> &nbsp;|&nbsp;
+  <a href="./06-phase-img-process-bug.md">⬅️ Prev: Lambda Image Processing Bug Fixes</a> &nbsp;|&nbsp;
   <a href="../../README.md">🏠 Back to Main README</a> &nbsp;|&nbsp;
   <a href="../architecture.md">🏗️ System Architecture ➡️</a>
 </div>

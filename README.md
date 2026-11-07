@@ -219,7 +219,7 @@ serverless-image-pipeline/
 ├── docs/
 │   ├── architecture.md                                    # Detailed system architecture, data model & IAM matrix
 │   ├── runbook.md                                         # Step-by-step LocalStack & AWS operational runbook
-│   └── case-studies/                                      # 9 engineering root-cause analysis documents
+│   └── case-studies/                                      # 10 engineering root-cause analysis documents
 │       ├── 00-phase-0-localstack-permission-crash.md
 │       ├── 01-phase-1-region-drift.md
 │       ├── 02-phase-2-lambda-deployment-package.md
@@ -228,6 +228,7 @@ serverless-image-pipeline/
 │       ├── 05-phase-3-dashboard.md
 │       ├── 05-phase-4-real-aws-errors.md
 │       ├── 06-phase-4-iam-and-ec2.md
+│       ├── 06-phase-img-process-bug.md
 │       └── 07-phase-6-cicd-oidc-errors.md
 ├── evidence/                                              # 37 screenshots (.png) + 8 raw terminal logs (.txt)
 ├── .github/workflows/                                     # Automated CI/CD pipelines
