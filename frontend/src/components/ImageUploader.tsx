@@ -338,3 +338,4 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onUploadSuccess })
     </div>
   );
 };
+
