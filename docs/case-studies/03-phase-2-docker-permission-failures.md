@@ -1,79 +1,75 @@
-# Case Study: Two Docker Permission Failures in Phase 2
-
-**Project:** Serverless Image Processing Pipeline
-**Phase:** Phase 2 — Lambda build & deployment
-**Date:** 2026-11-06
-**Time to resolve:** ~30 minutes total across both incidents
-**Outcome:** Resolved — function `Active`, pipeline ready for trigger wiring
+<div align="center">
+  <a href="./02-phase-2-lambda-deployment-package.md">⬅️ Prev: Phase 2A — Lambda Package</a> &nbsp;|&nbsp;
+  <a href="../../README.md">🏠 Back to Main README</a> &nbsp;|&nbsp;
+  <a href="./04-phase-2-pipeline-working.md">Next: Phase 2C — End-to-End Pipeline Working ➡️</a>
+</div>
 
 ---
 
-## Summary
+# Case Study 03: Two Host–Container Docker Permission Failures in Phase 2
 
-Phase 2 hit two related permission failures, both caused by **host↔container access boundaries**. The first blocked the Lambda _build_; the second blocked the Lambda _runtime_. Both looked like different problems but shared the same root cause: on Fedora with SELinux enforcing, a bind-mounted host resource is not automatically accessible inside a container unless explicitly permitted.
-
-The pattern is worth documenting because it will recur — it's not a one-off.
-
----
-
-## Timeline
-
-| #   | Action                                                    | Result                                                                        |
-| --- | --------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| 1   | Build Pillow into `package/` inside a SAM container       | ❌ `Permission denied: '/var/task/requirements.txt'`                          |
-| 2   | Cascading errors                                          | ❌ `cp: cannot create ... 'package/'` (dir never created), wrong zip produced |
-| 3   | Rebuild with `:z` + `--user` + `-e HOME`                  | ✅ `function.zip` 4.7 MB, `cpython-39` ABI confirmed                          |
-| 4   | `create-function` returned `State: Pending`               | ⏳ Expected                                                                   |
-| 5   | `State: Pending` → `State: Failed`                        | ❌ `StateReason: "Docker not available"`                                      |
-| 6   | Diagnostic: `ls /var/run/docker.sock` inside LocalStack   | ❌ `Permission denied` (SELinux blocking `stat()`)                            |
-| 7   | Add `security_opt: label=disable` to `localstack` service | ✅ Socket accessible                                                          |
-| 8   | `create-function` again                                   | ✅ `State: Active` on first poll                                              |
+| Field | Details |
+| :--- | :--- |
+| **Project** | Serverless Image Processing Pipeline |
+| **Phase** | Phase 2B — Lambda Build & Runtime Container Spawning |
+| **Environment** | Fedora Linux (SELinux Enforcing), Docker Compose V2, LocalStack `3.0.2` |
+| **Severity** | 🔴 **Blocker** (`State: Failed` — `"Error while creating lambda: Docker not available"`) |
+| **Time to Resolve** | ~30 minutes across both incidents |
+| **Status** | ✅ **Resolved** — Function transitioned from `Pending` → `Active` on first poll |
 
 ---
 
-## Error 1 — Build container cannot read bind-mounted source
+## 1. Executive Summary
 
-### Symptom
+Phase 2 encountered two related permission failures caused by **host↔container security boundaries on an SELinux-enforcing Linux host**:
+1. **Build-Time Failure**: The AWS SAM build container could not read `requirements.txt` or write `package/` on the bind-mounted host directory.
+2. **Runtime Failure**: LocalStack accepted `awslocal lambda create-function` (`State: Pending`), but seconds later transitioned the function to `State: Failed` with `StateReason: "Error while creating lambda: Docker not available"`.
 
+Although the symptoms looked completely different, both shared the same underlying root cause: **Fedora's SELinux mandatory access control blocked container processes from accessing mounted host resources (`./lambda` and `/var/run/docker.sock`) until explicitly permitted.**
+
+---
+
+## 2. Incident Timeline
+
+| Step | Action | Observed Signal | Assessment |
+| :---: | :--- | :--- | :--- |
+| **1** | Build Pillow inside SAM container (`-v "$PWD":/var/task`) | `Permission denied: '/var/task/requirements.txt'` | ❌ SELinux blocked bind mount |
+| **2** | Rebuild with `--user $(id -u):$(id -g) -e HOME=/tmp -v "$PWD":/var/task:z` | `function.zip` (`4.7 MB`) created | ✅ Build fixed |
+| **3** | `awslocal lambda create-function ...` | Returned `"State": "Pending"` | ⏳ Asynchronous container setup |
+| **4** | Polled `get-function-configuration` | `"State": "Failed"`, `"StateReason": "Docker not available"` | ❌ LocalStack couldn't talk to Docker daemon |
+| **5** | `docker-compose exec localstack ls -la /var/run/docker.sock` | `ls: cannot access '/var/run/docker.sock': Permission denied` | 🎯 SELinux blocking `stat()` on socket |
+| **6** | Added `security_opt: [label=disable]` to `localstack` in `docker-compose.yml` | `srw-rw----. 1 root 967 0 ... /var/run/docker.sock` | ✅ Socket accessible |
+| **7** | Re-ran `create-function` & polled state | `attempt 1: State=Active` | ✅ Lambda runtime container ready |
+
+---
+
+## 3. Incident Analysis: LocalStack Cannot Spawn Lambda Runtime Container
+
+### 3.1 Initial `create-function` Output (`State: Pending`)
+When `create-function` was first executed, LocalStack returned HTTP 200 with `"State": "Pending"`:
+
+![Function Configuration Pending](../../evidence/phase-2-function-config.png)
+
+<details>
+<summary>📄 <strong>View Raw Log: <code>evidence/phase-2-function-config-log.txt</code></strong></summary>
+
+```json
+{
+    "FunctionName": "image-processor",
+    "FunctionArn": "arn:aws:lambda:us-west-2:000000000000:function:image-processor",
+    "Runtime": "python3.9",
+    "Handler": "app.lambda_handler",
+    "CodeSize": 4861454,
+    "MemorySize": 256,
+    "State": "Pending",
+    "StateReason": "The function is being created.",
+    "StateReasonCode": "Creating"
+}
 ```
-ERROR: Could not open requirements file: [Errno 13] Permission denied: '/var/task/requirements.txt'
-cp: cannot create regular file 'package/': Not a directory
-cd: no such file or directory: package
-```
+</details>
 
-The zip that eventually got produced was broken (1.6 KB, contained a stray `Dockerfile`, no `app.py`).
-
-### Root Cause
-
-The `docker run -v "$PWD":/var/task` bind mount was not readable by the SAM container under Fedora's SELinux policy. Additionally, the container ran as a different UID than the host user, so even without SELinux, files pip created would be owned by `root` and unwritable afterwards.
-
-### Fix
-
-Four flags on the `docker run` command:
-
-```bash
-docker run --rm \
-  --user "$(id -u):$(id -g)" \
-  -e HOME=/tmp \
-  -v "$PWD":/var/task:z \
-  public.ecr.aws/sam/build-python3.9:latest \
-  pip install --no-cache-dir -r /var/task/requirements.txt -t /var/task/package
-```
-
-| Flag                       | Fixes                                                          |
-| -------------------------- | -------------------------------------------------------------- |
-| `--user $(id -u):$(id -g)` | UID mismatch — pip writes files as the invoking user, not root |
-| `-e HOME=/tmp`             | pip needs a writable home even with `--no-cache-dir`           |
-| `:z`                       | SELinux label — allows container read/write on the mount       |
-
-Result: `function.zip` grew to 4.7 MB, contained `app.py` at root, and `PIL/*.cpython-39-*.so` confirmed the correct ABI.
-
----
-
-## Error 2 — LocalStack cannot spawn Lambda runtime container
-
-### Symptom
-
+### 3.2 Diagnostic Breakthrough (`/var/run/docker.sock`)
+Seconds after `Pending`, the state flipped to `Failed` with:
 ```json
 {
   "State": "Failed",
@@ -81,105 +77,76 @@ Result: `function.zip` grew to 4.7 MB, contained `app.py` at root, and `PIL/*.cp
   "StateReasonCode": "InternalError"
 }
 ```
-
-### Diagnostic
+Testing socket access from inside the running LocalStack container revealed the smoking gun:
 
 ```bash
 docker-compose exec localstack ls -la /var/run/docker.sock
+# Output:
+# ls: cannot access '/var/run/docker.sock': Permission denied
 ```
 
-Output:
+**Why this happens**:
+- LocalStack executes Lambda functions by calling the host Docker API over `/var/run/docker.sock` to spawn a sibling container (`public.ecr.aws/lambda/python:3.9`).
+- When `stat()` itself fails with `Permission denied` on a mounted socket, it is **not** a standard Unix UID/GID issue—it is **SELinux confinement** (`container_t` is forbidden from accessing the host's `docker_var_run_t` socket label).
 
-```
-ls: cannot access '/var/run/docker.sock': Permission denied
-```
-
-**This is the key signal.** The socket was _mounted_ (per `docker-compose.yml`), but a basic `stat()` from inside the container was denied. That is not a UID/permission problem — the socket's `srw-rw----` mode would produce `No such file` or show the file even to non-members. `Permission denied` on `stat()` is the **SELinux signature**: the container's confinement profile forbids access to the socket's host label (`docker_var_run_t`).
-
-To run a Lambda, LocalStack calls the Docker API to start a sibling container (`public.ecr.aws/lambda/python:3.9`). With the socket inaccessible, that call fails, and the function state flips to `Failed`.
-
-### Fix
-
-Add `security_opt` to the `localstack` service in `docker-compose.yml`:
+### 3.3 The Fix & Verification
+We added `security_opt: [label=disable]` to the `localstack` service in [`docker-compose.yml`](../../docker-compose.yml):
 
 ```yaml
-localstack:
-  # ... existing config ...
-  security_opt:
-    - label=disable
+services:
+  localstack:
+    image: localstack/localstack:3.0
+    volumes:
+      - "./localstack_data:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    security_opt:
+      - label=disable
 ```
 
-Then restart:
+After restarting LocalStack, `/var/run/docker.sock` was immediately accessible inside the container:
 
-```bash
-docker-compose down
-docker-compose up -d localstack
+![Docker Socket Fixed Screenshot](../../evidence/phase-2-socket-fixed.png)
+
+Re-creating the Lambda function and polling its status confirmed `State=Active` on the first attempt:
+
+![Lambda Active Screenshot](../../evidence/phase-2-lambda-ACTIVE.png)
+
+<details>
+<summary>📄 <strong>View Raw Log: <code>evidence/phase-2-lambda-ACTIVE-log.txt</code></strong></summary>
+
+```text
+for i in $(seq 1 30); do
+  state=$(awslocal --region us-west-2 lambda get-function-configuration \
+    --function-name image-processor --query 'State' --output text 2>/dev/null)
+  echo "[$(date +%H:%M:%S)] attempt $i: State=$state"
+  if [ "$state" = "Active" ]; then
+    echo "✅ Function is Active"
+    break
+  fi
+  sleep 10
+done
+[16:53:59] attempt 1: State=Active
+✅ Function is Active
 ```
-
-After restart:
-
-```bash
-docker-compose exec localstack ls -la /var/run/docker.sock
-# → srw-rw----. 1 root 967 0 Nov  5 15:30 /var/run/docker.sock
-```
-
-No more permission denied. Re-running `create-function` produced `State: Active` on the first poll.
-
-### Why `label=disable` and not `user: root`
-
-`user: root` fixes UID mismatch but **does not disable SELinux labeling** — the container process would still be denied access to the socket under the default policy. `label=disable` is the **targeted fix** for exactly this class of failure, recommended by both Docker and SELinux documentation for "container needs to reach a host resource that SELinux protects."
-
-Side effect: none for other containers; only this one. `user: root` should only be added if `label=disable` alone is insufficient.
+</details>
 
 ---
 
-## What Made This Hard to Diagnose
+## 4. Pattern Recognition: Three SELinux Boundary Encounters
 
-1. **`docker-compose ps` shows only running containers.** The `Failed` state is not reflected — you must use `get-function-configuration --query StateReason` to see _why_ the state is Failed.
-2. **`State: Pending` looks like success.** It is not — the function record was created, but the runtime container had not started. Only polling to `Active` confirms success.
-3. **LocalStack does not surface the true cause in `create-function`.** The API returns `Pending` immediately; the `Failed` state appears seconds later with no error to the caller.
-4. **`docker` CLI absent in LocalStack container is a red herring.** LocalStack talks to Docker via the Python SDK, not the CLI. `docker: executable not found` is expected and unrelated to the failure.
+| Phase | Host Resource Mounted | Target Container | Symptom When Blocked | Targeted Fix |
+| :---: | :--- | :--- | :--- | :--- |
+| **Phase 0** | `./localstack_data/` | `localstack` | `mkdir: ... Permission denied` | `chmod 777` + `:z` mount flag |
+| **Phase 2A** | `./lambda/` | `sam/build-python3.9` | `Permission denied: '/var/task/requirements.txt'` | `--user $(id -u):$(id -g)` + `:z` mount flag |
+| **Phase 2B** | `/var/run/docker.sock` | `localstack` | `StateReason: "Docker not available"` | `security_opt: [label=disable]` |
 
-**Diagnostic order that worked:**
-`create-function` returns `Pending` → poll state → `Failed` → fetch `StateReason` → `"Docker not available"` → test socket from inside container → `Permission denied` on `stat()` → SELinux issue confirmed.
-
----
-
-## Lessons Learned
-
-1. **`Pending` is not `Active`.** In both Phase 0 (container "Started" ≠ running) and Phase 2 (`Pending` ≠ deployed), the API acknowledgment is not the completion. Always poll until the steady-state terminal value (`Running`, `Active`).
-
-2. **`Failed` requires a second API call to understand.** `StateReason`/`StateReasonCode` contain the diagnostic; the state itself is just a status flag.
-
-3. **`Permission denied` on `stat()` inside a container = SELinux**, not UID mismatch. UID mismatch shows as "file exists but can't write"; SELinux shows as "cannot even access". The fix (`label=disable`) is different from the fix for UID (`--user`).
-
-4. **Docker `--user` does not solve SELinux.** It changes file ownership but the container's SELinux confinement still applies. Both flags are needed on Fedora/RHEL. On Ubuntu or macOS, `--user` alone would have sufficed.
-
-5. **Fedora-specific behavior — document it.** Every mount into a container needs `:z` or `security_opt: label=disable` on Fedora. This is invisible on other OSes and will bite anyone running the same project on a different distribution.
-
-6. **A three-attempt build/deploy cycle is not a failure — it's the discovery process.** Each fix revealed the next layer. Scripting earlier would have hidden all three behind a single exit-1, losing the reasoning.
+> [!IMPORTANT]
+> Never relabel `/var/run/docker.sock` with `:z`—doing so changes the host socket's SELinux label and can break the host Docker daemon. Using `security_opt: [label=disable]` on the LocalStack container is the safe, targeted solution.
 
 ---
 
-## Evidence Checklist
-
-| File                        | Captures                                                      |
-| --------------------------- | ------------------------------------------------------------- |
-| `phase-2-build-FAILED.png`  | Build error + broken 1.6 KB zip with `Dockerfile` inside      |
-| `phase-2-build-package.png` | Successful `function.zip` (4.7 MB) + `cpython-39` ABI proof   |
-| `phase-2-lambda-FAILED.png` | `State: Failed` + `StateReason: "Docker not available"`       |
-| `phase-2-socket-FAILED.png` | `ls: cannot access '/var/run/docker.sock': Permission denied` |
-| `phase-2-socket-fixed.png`  | `srw-rw---- ... /var/run/docker.sock` after `label=disable`   |
-| `phase-2-lambda-ACTIVE.png` | Poll loop ending in `✅ Function is Active`                   |
-
----
-
-## Recurring Pattern — Three Instances in This Project
-
-| Phase           | Host resource              | Container           | Fix                               |
-| --------------- | -------------------------- | ------------------- | --------------------------------- |
-| 0               | `localstack_data/`         | LocalStack          | `chmod 777` + `:z`                |
-| 2 (build)       | `lambda/`                  | SAM build container | `--user` + `:z`                   |
-| **2 (runtime)** | **`/var/run/docker.sock`** | **LocalStack**      | **`security_opt: label=disable`** |
-
-All three are the same underlying problem: **Fedora's SELinux blocks container access to host mounts unless explicitly permitted**. This is the most transferable lesson from Phase 2 — every Docker-based project on Fedora/RHEL will encounter a version of this.
+<div align="center">
+  <a href="./02-phase-2-lambda-deployment-package.md">⬅️ Prev: Phase 2A — Lambda Package</a> &nbsp;|&nbsp;
+  <a href="../../README.md">🏠 Back to Main README</a> &nbsp;|&nbsp;
+  <a href="./04-phase-2-pipeline-working.md">Next: Case Study 04 — End-to-End Pipeline Working ➡️</a>
+</div>
