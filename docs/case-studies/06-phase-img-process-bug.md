@@ -8,14 +8,14 @@
 
 # Case Study 08: Lambda Image Processing Bugs — URL-Encoded Keys & RGBA Alpha Transparency
 
-| Field                 | Details                                                                                                                          |
-| :-------------------- | :------------------------------------------------------------------------------------------------------------------------------- |
-| **Project**           | Serverless Image Processing Pipeline                                                                                             |
-| **Incident**          | Lambda Execution Crashes on PNG Uploads & Filenames with Spaces                                                                  |
-| **Symptoms**          | S3 upload succeeded via React console, but thumbnails never generated and DynamoDB remained empty                                |
+| Field | Details |
+| :--- | :--- |
+| **Project** | Serverless Image Processing Pipeline |
+| **Incident** | Lambda Execution Crashes on PNG Uploads & Filenames with Spaces |
+| **Symptoms** | S3 upload succeeded via React console, but thumbnails never generated and DynamoDB remained empty |
 | **Errors Discovered** | `ClientError: An error occurred (AccessDenied) when calling the GetObject operation` & `OSError: cannot write mode RGBA as JPEG` |
-| **Root Causes**       | S3 event URL-encoding (`+` for spaces) & Pillow JPEG encoder inability to process RGBA alpha channels                            |
-| **Outcome**           | ✅ **Resolved** — Auto-decoded S3 keys with `unquote_plus` and RGB conversion; CI/CD deployed in < 60s                           |
+| **Root Causes** | S3 event URL-encoding (`+` for spaces) & Pillow JPEG encoder inability to process RGBA alpha channels |
+| **Outcome** | ✅ **Resolved** — Auto-decoded S3 keys with `unquote_plus` and RGB conversion; CI/CD deployed in < 60s |
 
 ---
 
@@ -36,10 +36,10 @@ Both bugs were fixed in [`lambda/app.py`](../../lambda/app.py) and deployed auto
 
 ### Incident Matrix
 
-| #   | Bug                          | Symptom / Log Error                                           | Root Cause                                                                                                                                                                 | Engineering Solution                                                                         |
-| --- | ---------------------------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| 1   | **URL-Encoded S3 Key**       | `s3:GetObject AccessDenied / NoSuchKey` for files with spaces | S3 event records URL-encode object keys by design (e.g., spaces converted to `+` or `%20`). When passed directly to `boto3`, S3 searches for the literal string.           | Import `urllib.parse` and wrap `record["object"]["key"]` with `urllib.parse.unquote_plus()`. |
-| 2   | **RGBA Alpha Channel Crash** | `OSError: cannot write mode RGBA as JPEG`                     | Screenshots and transparent graphics have 4 color channels (`RGBA`). JPEG only supports 3 channels (`RGB`), so `img.save(buf, format="JPEG")` raises an unhandled OSError. | Convert image mode before thumbnailing via `Image.open(...).convert("RGB")`.                 |
+| # | Bug | Symptom / Log Error | Root Cause | Engineering Solution |
+|---|-----|---------------------|------------|----------------------|
+| 1 | **URL-Encoded S3 Key** | `s3:GetObject AccessDenied / NoSuchKey` for files with spaces | S3 event records URL-encode object keys by design (e.g., spaces converted to `+` or `%20`). When passed directly to `boto3`, S3 searches for the literal string. | Import `urllib.parse` and wrap `record["object"]["key"]` with `urllib.parse.unquote_plus()`. |
+| 2 | **RGBA Alpha Channel Crash** | `OSError: cannot write mode RGBA as JPEG` | Screenshots and transparent graphics have 4 color channels (`RGBA`). JPEG only supports 3 channels (`RGB`), so `img.save(buf, format="JPEG")` raises an unhandled OSError. | Convert image mode before thumbnailing via `Image.open(...).convert("RGB")`. |
 
 ---
 
@@ -80,7 +80,7 @@ from PIL import Image
 def lambda_handler(event, context):
     record = event["Records"][0]["s3"]
     source_bucket = record["bucket"]["name"]
-
+    
     # FIX 1: URL decode the object key (converts '+' and '%20' back to spaces)
     object_key = urllib.parse.unquote_plus(record["object"]["key"])
 
@@ -91,7 +91,7 @@ def lambda_handler(event, context):
     # FIX 2: Convert transparent/RGBA images to RGB before saving as JPEG
     img = Image.open(io.BytesIO(image_data)).convert("RGB")
     img.thumbnail(THUMBNAIL_SIZE)
-
+    
     buf = io.BytesIO()
     img.save(buf, format="JPEG")
     buf.seek(0)
